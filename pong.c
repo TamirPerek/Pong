@@ -360,7 +360,7 @@ int loop(void)
 int main(void)
 {
 	// Start Setup for Game
-	if (setup())// != EXIT_SUCCESS)
+	if (setup() != EXIT_SUCCESS)
 	{
 		fprintf(stderr, "Fehler im Setup()");
 		return -1;
