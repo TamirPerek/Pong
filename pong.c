@@ -7,12 +7,17 @@
 // The Preprocessor of the SimpleC Compiler don't set any common Operating System Define.
 // So we can check these Defines, to set the value of the virtualc Define.
 #if defined _WIN32 || defined _WIN64 || defined __APPLE__ || defined __linux__ || defined __unix__ || defined _POSIX_VERSION
-#include <SDL/SDL.h> // Only needed if you want to play the game outside of Virtual-C IDE
+#define NON_VIRTUALC 1
+#endif
+
+#ifdef NON_VIRTUALC
+#include <SDL.h> // Only needed if you want to play the game outside of Virtual-C IDE
+#undef main
 #else
 #include <sdlite.h> // Only needed if you want to play the game inside of Virtual-C IDE
 #endif
 
-#define FIELDWITH 1028	// Window width
+#define FIELDWIDTH 1028	// Window width
 #define FIELDHEIGHT 720 // Window height
 #define NUMBERLENGTH 10 // number of possible scores
 #define PLAYERMARGIN 20 // Distance of the player to the edge
@@ -377,7 +382,7 @@ int loop(void)
 	return EXIT_SUCCESS;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	// Start Setup for Game
 	if (setup() != EXIT_SUCCESS)
