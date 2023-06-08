@@ -1,6 +1,7 @@
-Pong für die VirtualC-IDE
-==============
+Pong
+====
 
-Sie können das Spiel einfach herrunterladen und in der VirtualC-IDE ausführen.
+This is a Pong version of me that I made during my college days.
+It is optimized for an educational C-IDE called VirtualC-IDE.
 
-Zum kompilieren auf Windows, Linux und MacOS, muss die SDL Library installiert sein. Und zwar in der Version 1.x.
+If you want to use this game compiled with a normal compiler, you must have linked SDL in version 1.x.
