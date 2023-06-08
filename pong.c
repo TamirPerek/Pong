@@ -7,17 +7,19 @@
 // The Preprocessor of the SimpleC Compiler don't set any common Operating System Define.
 // So we can check these Defines, to set the value of the virtualc Define.
 #if defined _WIN32 || defined _WIN64 || defined __APPLE__ || defined __linux__ || defined __unix__ || defined _POSIX_VERSION
-#define NON_VIRTUALC 1
+	#define NON_VIRTUALC 1
 #endif
 
 #ifdef NON_VIRTUALC
-#include <SDL.h> // Only needed if you want to play the game outside of Virtual-C IDE
-#undef main
+	#include <SDL.h> // Only needed if you want to play the game outside of Virtual-C IDE
+	#ifdef main
+		#undef main
+	#endif
 #else
-#include <sdlite.h> // Only needed if you want to play the game inside of Virtual-C IDE
+	#include <sdlite.h> // Only needed if you want to play the game inside of Virtual-C IDE
 #endif
 
-#define FIELDWIDTH 1028	// Window width
+#define FIELDWIDTH 1028 // Window width
 #define FIELDHEIGHT 720 // Window height
 #define NUMBERLENGTH 10 // number of possible scores
 #define PLAYERMARGIN 20 // Distance of the player to the edge
@@ -25,23 +27,35 @@
 
 // Global variables
 // Surfaces are the individual layers of the window
-SDL_Surface *screen, *background, *ball, *playerOne, *playerTwo, *middleLine, *number[NUMBERLENGTH];
+SDL_Surface *screen = NULL;
+SDL_Surface *background = NULL;
+SDL_Surface *ball = NULL;
+SDL_Surface *playerOne = NULL;
+SDL_Surface *playerTwo = NULL;
+SDL_Surface *middleLine = NULL;
+SDL_Surface *number[NUMBERLENGTH] = {NULL};
 
 // The positions of each item in the window
-SDL_Rect middleLinePosition, playerOnePosition, playerTwoPosition, ballPosition, numberPlayerOnePosition, numberPlayerTwoPosition;
+SDL_Rect middleLinePosition;
+SDL_Rect playerOnePosition;
+SDL_Rect playerTwoPosition;
+SDL_Rect ballPosition;
+SDL_Rect numberPlayerOnePosition;
+SDL_Rect numberPlayerTwoPosition;
 
 // Is the game running?
 bool run = true;
 
 // Points of players
-int pointsPlayerOne = 0, pointsPlayerTwo = 0;
+int pointsPlayerOne = 0;
+int pointsPlayerTwo = 0;
 
 // speed of the ball
-float xspeed = 5;
-float yspeed = 3;
+float xspeed = 5.0f;
+float yspeed = 3.0f;
 
 // Force acting on the speed of the ball. This will make him faster over time!
-const float force = (float)1.0005;
+const float force = 1.0005f;
 
 /**
  * @brief Helper function to convert an integer to a char
@@ -375,11 +389,33 @@ int loop(void)
 		if (render() != EXIT_SUCCESS)
 		{
 			fprintf(stderr, "Fehler in render()");
-			return -1;
+			return EXIT_FAILURE;
 		}
 	}
 
 	return EXIT_SUCCESS;
+}
+
+void cleanUp()
+{
+	// Free Memory
+	if (screen != NULL)
+		SDL_FreeSurface(screen);
+	if (ball != NULL)
+		SDL_FreeSurface(ball);
+	if (playerOne != NULL)
+		SDL_FreeSurface(playerOne);
+	if (playerTwo != NULL)
+		SDL_FreeSurface(playerTwo);
+	if (middleLine != NULL)
+		SDL_FreeSurface(middleLine);
+
+	for (int i = 0; i < NUMBERLENGTH; i++)
+		if (number[i] != NULL)
+			SDL_FreeSurface(number[i]);
+
+	// Close Engine
+	SDL_Quit();
 }
 
 int main(int argc, char *argv[])
@@ -388,28 +424,19 @@ int main(int argc, char *argv[])
 	if (setup() != EXIT_SUCCESS)
 	{
 		fprintf(stderr, "Error in setup()");
-		return -1;
+		cleanUp();
+		return EXIT_FAILURE;
 	}
 
 	// Start game loop
 	if (loop() != EXIT_SUCCESS)
 	{
 		fprintf(stderr, "Error in loop()");
-		return -1;
+		cleanUp();
+		return EXIT_FAILURE;
 	}
 
-	// Free Memory
-	SDL_FreeSurface(screen);
-	SDL_FreeSurface(ball);
-	SDL_FreeSurface(playerOne);
-	SDL_FreeSurface(playerTwo);
-	SDL_FreeSurface(middleLine);
-
-	for (int i = 0; i < NUMBERLENGTH; i++)
-		SDL_FreeSurface(number[i]);
-
-	// Close Engine
-	SDL_Quit();
+	cleanUp();
 
 	return EXIT_SUCCESS;
 }
