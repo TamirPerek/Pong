@@ -7,84 +7,99 @@
 // The Preprocessor of the SimpleC Compiler don't set any common Operating System Define.
 // So we can check these Defines, to set the value of the virtualc Define.
 #if defined _WIN32 || defined _WIN64 || defined __APPLE__ || defined __linux__ || defined __unix__ || defined _POSIX_VERSION
-#include <SDL/SDL.h>	// Wird nur benoetigt wenn man das Spiel ausserhalb von Virtual-C IDE spielen will
+#include <SDL/SDL.h> // Only needed if you want to play the game outside of Virtual-C IDE
 #else
-#include <sdlite.h> 	// Wird nur benoetigt wenn man das Spiel innerhalb von Virtual-C IDE spielen will
+#include <sdlite.h> // Only needed if you want to play the game inside of Virtual-C IDE
 #endif
 
-#define FIELDWITH 1028  // Fensterbreite
-#define FIELDHEIGHT 720 // Fensterhoehe
-#define NUMBERLENGTH 10 // Anzahl an moeglichen Zahlen
-#define PLAYERMARGIN 20 // Abstand des Spielers zum Rand
+#define FIELDWITH 1028	// Window width
+#define FIELDHEIGHT 720 // Window height
+#define NUMBERLENGTH 10 // number of possible scores
+#define PLAYERMARGIN 20 // Distance of the player to the edge
 #define BITSPERPIXEL 32
 
-// Globale Variablen
-// Surfaces sind die einzelnen Layer des Fensters
+// Global variables
+// Surfaces are the individual layers of the window
 SDL_Surface *screen, *background, *ball, *playerOne, *playerTwo, *middleLine, *number[NUMBERLENGTH];
 
-// Die Positionen der einzelnen Elemente im Fenster
+// The positions of each item in the window
 SDL_Rect middleLinePosition, playerOnePosition, playerTwoPosition, ballPosition, numberPlayerOnePosition, numberPlayerTwoPosition;
 
-// Laeuft das Spiel?
+// Is the game running?
 bool run = true;
 
-// Spieler Punkte
+// Points of players
 int pointsPlayerOne = 0, pointsPlayerTwo = 0;
 
-// Geschwindigkeit des Balls
+// speed of the ball
 float xspeed = 5;
 float yspeed = 3;
 
-// Kraft, welche auf die Geschwindigkeit des Balles wirkt. Damit wird er schneller ueber Zeit!
+// Force acting on the speed of the ball. This will make him faster over time!
 const float force = (float)1.0005;
 
-// Hilfsfunktion um ein Integer in ein Char zu wandeln
+/**
+ * @brief Helper function to convert an integer to a char
+ *
+ * @param i int from 0 to 9
+ * @return char
+ */
 char intToChar(int i)
 {
 	return (char)i + '0';
 }
 
-// Zeichnet Elemente auf das Fenster
+/**
+ * @brief Draws items on the window
+ *
+ * @return int
+ * 0 if success
+ */
 int render(void)
 {
-	// Background Image zeichnen
+	// Draw background image
 	SDL_BlitSurface(background, 0, screen, 0);
 
-	// Surface mit Mittellinie auf Fensterkopieren
+	// Copy surface to window with center line
 	SDL_BlitSurface(middleLine, 0, screen, &middleLinePosition);
 
-	// Surfaces mit Spieler 1 und 2 auf Fensterkopieren
+	// Copy surfaces with player 1 and 2 to window
 	SDL_BlitSurface(playerOne, 0, screen, &playerOnePosition);
 	SDL_BlitSurface(playerTwo, 0, screen, &playerTwoPosition);
 
-	// Nummer
+	// Number
 	SDL_BlitSurface(number[pointsPlayerOne], 0, screen, &numberPlayerOnePosition);
 	SDL_BlitSurface(number[pointsPlayerTwo], 0, screen, &numberPlayerTwoPosition);
 
 	// Ball
 	SDL_BlitSurface(ball, 0, screen, &ballPosition);
 
-	// Screen neu zeichen
+	// redraw screen
 	SDL_Flip(screen);
 
 	return EXIT_SUCCESS;
 }
 
-// Diese Funktion stellt alle noetigen Bedingungen her um das Programm auszufuehren
+/**
+ * @brief This function creates all the necessary conditions to run the program
+ *
+ * @return int
+ * 0 if success
+ */
 int setup(void)
 {
-	// SDL mit dem Grafiksystem initialisieren.
+	// Initialize SDL with the graphics system.
 	if (SDL_Init(SDL_INIT_VIDEO) == -1)
 	{
-		printf("Konnte SDL nicht initialisieren! Fehler: %s\n", SDL_GetError());
+		printf("Couldn't init SDL! Fehler: %s\n", SDL_GetError());
 		return -1;
 	}
 
-	// Fenster erstellen
-	SDL_Surface *newScreen = SDL_SetVideoMode(FIELDWITH, FIELDHEIGHT, BITSPERPIXEL, SDL_SWSURFACE);
+	// create window
+	SDL_Surface *newScreen = SDL_SetVideoMode(FIELDWIDTH, FIELDHEIGHT, BITSPERPIXEL, SDL_SWSURFACE);
 	if (!newScreen)
 	{
-		printf("Konnte SDL-Fenster nicht erzeugen! Fehler: %s\n", SDL_GetError());
+		printf("Couldn't create SDL window! Error: %s\n", SDL_GetError());
 		return -1;
 	}
 	else
@@ -92,14 +107,14 @@ int setup(void)
 		screen = newScreen;
 	}
 
-	// Fenster Title anzeigen
+	// set title of the window
 	SDL_WM_SetCaption("SDL-Pong", "SDL-Pong");
 
-	// Background Image laden
+	// Load background image
 	SDL_Surface *newBackground = SDL_LoadBMP("img/Field.bmp");
 	if (!newBackground)
 	{
-		fprintf(stderr, "Konnte Bmp nicht laden! Fehler: %s\n", SDL_GetError());
+		fprintf(stderr, "Couldn't load bmp! Error: %s\n", SDL_GetError());
 		return -1;
 	}
 	else
@@ -107,26 +122,26 @@ int setup(void)
 		background = newBackground;
 	}
 
-	// Mittellinie laden
+	// load middle line
 	SDL_Surface *newMiddleLine = SDL_LoadBMP("img/Middleline.bmp");
 	if (!newMiddleLine)
 	{
-		fprintf(stderr, "Konnte Bmp nicht laden! Fehler: %s\n", SDL_GetError());
+		fprintf(stderr, "Couldn't load Bmp! Error: %s\n", SDL_GetError());
 		return -1;
 	}
 	else
 	{
 		middleLine = newMiddleLine;
 	}
-	// Position der Mittellinie festlegen
-	middleLinePosition.x = (int)(FIELDWITH / 2 - middleLine->w / 2);
+	// Set the position of the center line
+	middleLinePosition.x = (int)(FIELDWIDTH / 2 - middleLine->w / 2);
 	middleLinePosition.y = 0;
 
-	// Spieler Eins laden
+	// load player one
 	SDL_Surface *newPlayerOne = SDL_LoadBMP("img/Player.bmp");
 	if (!newPlayerOne)
 	{
-		fprintf(stderr, "Konnte Bmp nicht laden! Fehler: %s\n", SDL_GetError());
+		fprintf(stderr, "Couldn't load Bmp! Error: %s\n", SDL_GetError());
 		return -1;
 	}
 	else
@@ -134,15 +149,15 @@ int setup(void)
 		playerOne = newPlayerOne;
 	}
 
-	// Position des Spieler Eins festlegen
+	// Set position of player one
 	playerOnePosition.x = PLAYERMARGIN;
 	playerOnePosition.y = FIELDHEIGHT / 2 - playerOne->h / 2;
 
-	// Spieler Zwei laden
+	// Load player two
 	SDL_Surface *newPlayerTwo = SDL_LoadBMP("img/Player.bmp");
 	if (!newPlayerTwo)
 	{
-		fprintf(stderr, "Konnte Bmp nicht laden! Fehler: %s\n", SDL_GetError());
+		fprintf(stderr, "Couldn't load Bmp! Error: %s\n", SDL_GetError());
 		return -1;
 	}
 	else
@@ -150,15 +165,15 @@ int setup(void)
 		playerTwo = newPlayerTwo;
 	}
 
-	// Position des Spieler Zwei festlegen
-	playerTwoPosition.x = FIELDWITH - PLAYERMARGIN - playerTwo->w;
+	// Set position of player two
+	playerTwoPosition.x = FIELDWIDTH - PLAYERMARGIN - playerTwo->w;
 	playerTwoPosition.y = FIELDHEIGHT / 2 - playerTwo->h / 2;
 
-	// Ball laden
+	// load ball
 	SDL_Surface *newBall = SDL_LoadBMP("img/Ball.bmp");
 	if (!newPlayerTwo)
 	{
-		fprintf(stderr, "Konnte Bmp nicht laden! Fehler: %s\n", SDL_GetError());
+		fprintf(stderr, "Couldn't load Bmp! Error: %s\n", SDL_GetError());
 		return -1;
 	}
 	else
@@ -166,11 +181,11 @@ int setup(void)
 		ball = newBall;
 	}
 
-	// Intitiale Position des Balls festlegen
-	ballPosition.x = FIELDWITH / 2 - ball->w / 2 + PLAYERMARGIN;
+	// Set start position of the ball
+	ballPosition.x = FIELDWIDTH / 2 - ball->w / 2 + PLAYERMARGIN;
 	ballPosition.y = FIELDHEIGHT / 2 - ball->h / 2;
 
-	// Laden der Nummern fuer die Spielstandsanzeige
+	// Load the score numbers
 	for (int i = 0; i < NUMBERLENGTH; i++)
 	{
 		char string[20] = "img/";
@@ -180,7 +195,7 @@ int setup(void)
 		SDL_Surface *newNumber = SDL_LoadBMP(string);
 		if (!newNumber)
 		{
-			fprintf(stderr, "Konnte Bmp nicht laden! Fehler: %s\n", SDL_GetError());
+			fprintf(stderr, "Couldn't load Bmp! Error: %s\n", SDL_GetError());
 			return -1;
 		}
 		else
@@ -189,34 +204,39 @@ int setup(void)
 		}
 	}
 
-	// Positionierung des Punktestands von Spieler Eins
-	numberPlayerOnePosition.x = FIELDWITH / 2 - number[0]->w - 2 * PLAYERMARGIN;
+	// Set position of the score for player one
+	numberPlayerOnePosition.x = FIELDWIDTH / 2 - number[0]->w - 2 * PLAYERMARGIN;
 	numberPlayerOnePosition.y = PLAYERMARGIN;
 
-	// Positionierung des Punktestands von Spieler Zwei
-	numberPlayerTwoPosition.x = FIELDWITH / 2 + 2 * PLAYERMARGIN;
+	// Set position of the score for player one
+	numberPlayerTwoPosition.x = FIELDWIDTH / 2 + 2 * PLAYERMARGIN;
 	numberPlayerTwoPosition.y = PLAYERMARGIN;
 
-	// Zeichnen des Spiels auf das Fenster
+	// Render the game
 	render();
 
 	return EXIT_SUCCESS;
 }
 
-// Ist fuer die Spiellogik zustaendig.
+/**
+ * @brief Is responsible for the game logic.
+ *
+ * @return int
+ * 0 if success
+ */
 int loop(void)
 {
-	// Speichert ab das eine Taste gedrueckt wurde
-	bool keyPressed[SDLK_LAST]; 	// SDLK_LAST is deprecated and and replaced by SDL_NUM_SCANCODES with the value of 512
-							// --> https://wiki.libsdl.org/MigrationGuide?highlight=%28SDLK_LAST%29
+	// Saves if a key on the keyboard is pressed
+	bool keyPressed[SDLK_LAST]; // SDLK_LAST is deprecated and and replaced by SDL_NUM_SCANCODES with the value of 512
+								// --> https://wiki.libsdl.org/MigrationGuide?highlight=%28SDLK_LAST%29
 	memset(keyPressed, 0, sizeof(keyPressed));
-	// Program Schleife
+	// program loop
 	while (run)
 	{
-		// Speichert das eingehende Event ab
+		// Saves incomming events
 		SDL_Event event;
 
-		// die Event-Schleife
+		// event loop
 		while (SDL_PollEvent(&event))
 		{
 			switch (event.type)
@@ -233,15 +253,15 @@ int loop(void)
 			}
 		}
 
-		// Ball bewegung
+		// move the ball
 		ballPosition.x += (int)xspeed;
 		ballPosition.y += (int)yspeed;
 
-		// Wand abpraller
+		// wall bounce
 		if (ballPosition.y < 0 || ballPosition.y + ball->h > screen->h)
 			yspeed *= -1;
 
-		// Punkte Spieler Zwei
+		// Points player two
 		if (ballPosition.x + ball->w < 0)
 		{
 			if (pointsPlayerTwo == 9)
@@ -253,10 +273,10 @@ int loop(void)
 				pointsPlayerTwo++;
 				xspeed *= -1;
 			}
-			// Resett Ball Position
-			ballPosition.x = FIELDWITH / 2 - ball->w / 2 + PLAYERMARGIN;
+			// Reset Ball Position
+			ballPosition.x = FIELDWIDTH / 2 - ball->w / 2 + PLAYERMARGIN;
 			ballPosition.y = FIELDHEIGHT / 2 - ball->h / 2;
-			// Resett Ball geschwindigkeit
+			// Reset Ball speed
 			xspeed = 5;
 			if (yspeed < 0)
 			{
@@ -269,7 +289,7 @@ int loop(void)
 		}
 
 		// Points Player One
-		if (ballPosition.x > FIELDWITH)
+		if (ballPosition.x > FIELDWIDTH)
 		{
 			if (pointsPlayerOne == 9)
 			{
@@ -280,10 +300,10 @@ int loop(void)
 				pointsPlayerOne++;
 				xspeed *= -1;
 			}
-			// Resett Ball Position
-			ballPosition.x = FIELDWITH / 2 - ball->w / 2 - PLAYERMARGIN;
+			// Reset Ball Position
+			ballPosition.x = FIELDWIDTH / 2 - ball->w / 2 - PLAYERMARGIN;
 			ballPosition.y = FIELDHEIGHT / 2 - ball->h / 2;
-			// Resett Ballspeed
+			// Reset Ball speed
 			xspeed = -5;
 			if (yspeed < 0)
 			{
@@ -295,12 +315,12 @@ int loop(void)
 			}
 		}
 
-		// Spieler Eins abpraller
+		// Player one bounce
 		if (ballPosition.x < playerOnePosition.x + playerOne->w && ballPosition.y < playerOnePosition.y + playerOne->h && ballPosition.y + ball->h > playerOnePosition.y)
 		{
 			xspeed *= -1;
 		}
-		// Spieler Zwei abpraller
+		// Player two bounce
 		if (ballPosition.x + ball->w > playerTwoPosition.x && ballPosition.y < playerTwoPosition.y + playerTwo->h && ballPosition.y + ball->h > playerTwoPosition.y)
 			xspeed *= -1;
 
@@ -362,14 +382,14 @@ int main(void)
 	// Start Setup for Game
 	if (setup() != EXIT_SUCCESS)
 	{
-		fprintf(stderr, "Fehler im Setup()");
+		fprintf(stderr, "Error in setup()");
 		return -1;
 	}
 
-	// Start Gameloop
+	// Start game loop
 	if (loop() != EXIT_SUCCESS)
 	{
-		fprintf(stderr, "Fehler in loop()");
+		fprintf(stderr, "Error in loop()");
 		return -1;
 	}
 
